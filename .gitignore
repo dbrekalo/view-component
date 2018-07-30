@@ -1,0 +1,4 @@
+node_modules/
+coverage/
+*.orig
+npm-debug.log*
