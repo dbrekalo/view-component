@@ -1,6 +1,6 @@
 {
   "name": "view-component",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Lightweight javascript view component library",
   "main": "index.js",
   "license": "MIT",
