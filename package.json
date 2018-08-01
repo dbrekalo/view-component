@@ -45,6 +45,6 @@
   "dependencies": {
     "mitty": "^1.0.2",
     "type-factory": "^3.0.0",
-    "validate-types": "^0.0.1"
+    "validate-types": "^1.0.1"
   }
 }
