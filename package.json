@@ -2,7 +2,7 @@
   "name": "view-component",
   "version": "0.0.1",
   "description": "Lightweight javascript view component library",
-  "main": "index.js",
+  "main": "lib/index.js",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "mitty": "^1.0.2",
-    "type-factory": "^2.0.1"
+    "type-factory": "^3.0.0",
+    "validate-types": "^0.0.1"
   }
 }
