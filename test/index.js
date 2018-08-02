@@ -101,8 +101,8 @@ describe('SimpleView events', function() {
         var View = ViewComponent.extend({
             events: {
                 'submit form': 'submitForm',
-                'click form': function() {
-                    this.formIsClicked = true;
+                'click .entryList': function(e) {
+                    this.entryListIsClicked = true;
                 },
             },
             submitForm: function(e) {
@@ -114,11 +114,11 @@ describe('SimpleView events', function() {
 
         var view = new View({el: '.guestbook'});
 
-        document.querySelector('form').click();
+        document.querySelector('.entryList li').click();
         document.querySelector('.submitBtn').click();
 
         assert.isTrue(view.formIsSubmited);
-        assert.isTrue(view.formIsClicked);
+        assert.isTrue(view.entryListIsClicked);
 
     });
 
@@ -189,13 +189,13 @@ describe('SimpleView events', function() {
         var view = ViewComponent.extend({
             open: function() {
                 this.isOpened = true;
-                return this.addDismissListener('close');
+                return this.addDismissListener(this.close);
             },
             close: function() {
                 this.isOpened = false;
                 this.timesClosed = this.timesClosed || 0;
                 this.timesClosed++;
-                this.removeDismissListener('close');
+                this.removeDismissListener(this.close);
             }
         }).create({el: '.guestbook'}).open();
 
@@ -217,12 +217,12 @@ describe('SimpleView events', function() {
         var view = ViewComponent.extend({
             open: function() {
                 this.isOpened = true;
-                this.addDismissListener('close', {container: this.find('form')});
+                this.addDismissListener(this.close, {container: this.find('form')});
                 return this;
             },
             close: function() {
                 this.isOpened = false;
-                this.removeDismissListener('close');
+                this.removeDismissListener(this.close);
             }
         }).create({el: '.guestbook'}).open();
 
@@ -237,11 +237,11 @@ describe('SimpleView events', function() {
         var view = ViewComponent.extend({
             openMenu: function() {
                 this.isOpened = true;
-                return this.addDismissListener('closeMenu');
+                return this.addDismissListener(this.closeMenu);
             },
             closeMenu: function() {
                 this.isOpened = false;
-                this.removeDismissListener('closeMenu');
+                this.removeDismissListener(this.closeMenu);
             }
         }).create({el: '.guestbook'});
 
