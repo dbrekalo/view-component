@@ -235,6 +235,12 @@ describe('SimpleView events', function() {
     it('executes dismiss listener on escape key', function() {
 
         var view = ViewComponent.extend({
+            initialize: function() {
+                this.dismissCount = 0;
+                this.addDismissListener(() => {
+                    this.dismissCount++;
+                });
+            },
             openMenu: function() {
                 this.isOpened = true;
                 return this.addDismissListener(this.closeMenu);
@@ -250,8 +256,10 @@ describe('SimpleView events', function() {
         var event = new Event('keyup');
         event.which = event.keyCode = 27;
         document.dispatchEvent(event);
+        document.dispatchEvent(event);
 
         assert.strictEqual(view.isOpened, false);
+        assert.strictEqual(view.dismissCount, 2);
 
     });
 

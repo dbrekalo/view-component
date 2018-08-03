@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/dbrekalo/view-component/badge.svg?branch=master)](https://coveralls.io/github/dbrekalo/view-component?branch=master)
 [![NPM Status](https://img.shields.io/npm/v/view-component.svg)](https://www.npmjs.com/package/view-component)
 
-Build user interfaces with smart event system, strict component props and clear way of defining view hierarchy.
+Library for building user interfaces with smart event system, strict component props and clear way of defining view hierarchy.
 Works great with server side rendered html.
 Weighs around 3.5 KB.
 
@@ -32,7 +32,7 @@ npm install view-component --save
 ## Examples
 ---
 ### Dropdown component with toggle UI
-View component for dropdown with following html structure:
+Component html:
 ```html
 <nav class="dropdown">
     <button type="button" class="toggleBtn"></button>
@@ -41,6 +41,7 @@ View component for dropdown with following html structure:
     </ul>
 </nav>
 ```
+Component javascript:
 ```js
 // define Dropdown component
 var Dropdown = ViewComponent.extend({
@@ -75,8 +76,8 @@ new Dropdown({el: '.dropdown'});
 
 ----
 
-### List component with view hierarchy and custom events
-Component html structure:
+### List component with view tree
+Component html:
 ```html
 <ul>
     <li>...</li>
@@ -87,23 +88,12 @@ Component html structure:
 // define List component
 var List = ViewComponent.extend({
     initialize: function() {
-        this.listViews = this.mapViews('li', ListItem);
-        this.listViews.forEach(listItemView => {
-            this.listenTo(listItemView, 'workDone', () => {
-                console.log('Work done', listItemView);
-            });
-        });
+        var listViews = this.mapViews('li', ListItem);
     }
 });
 
-// define List component
-var ListItem = ViewComponent.extend({
-    initialize: function() {
-        setTimeout(() => {
-            this.trigger('workDone');
-        }, 100);
-    }
-});
+// define List item component
+var ListItem = ViewComponent.extend({...});
 
 // create list instance
 new List({el: 'ul'});
@@ -130,6 +120,28 @@ new View().prototypeMethod();
 
 // static method call
 View.staticMethod();
+```
+Subclassing components:
+```js
+var Animal = ViewComponent.extend({
+    cuddle: function() {
+        console.log('Cuddling...');
+    }
+});
+
+var Dog = Animal.extend({
+    cuddle: function() {
+        Animal.prototype.cuddle.call(this);
+        console.log('And barking');
+    }
+});
+
+var Cat = Animal.extend({
+    cuddle: function() {
+        throw new Error('Meeeow');
+    }
+});
+
 ```
 
 ---
@@ -173,19 +185,35 @@ var View = ViewComponent.extend({
 
 ---
 
+### beforeRemove()
+Method / hook called before view removal.
+```js
+var View = ViewComponent.extend({
+    initialize: function() {
+        this.plugin = new Plugin();
+    },
+    beforeRemove: function() {
+        this.plugin.destroy();
+    }
+});
+```
+
+---
+
 ### events: object | function
-Declare events with object hash or custom function in prototype properties.
+Declare events with object hash or custom function.
+Event delegation is used so there is no need to rebind events when view html content is updated (with ajax or otherwise).
 All declared listeners are removed when view is removed.
 
 ```js
 // with object definition
 ViewComponent.extend({
     events: {
-        'click .selector': 'handler',
-        'one:submit form': 'oneSubmit', // one time events
-        'click button': function(e) {},
-        'resize window': 'onWindowResize',
-        'keyup document': 'onDocumentKeyup'
+        'click .selector': 'handler', // bound to this.handler
+        'one:submit form': 'oneSubmit', // listener will fire only once
+        'click button': function(e) {}, // inline handler
+        'resize window': 'onWindowResize', // window events
+        'keyup document': 'onDocumentKeyup' // document events
     }
 });
 // with function definition
@@ -279,13 +307,106 @@ ViewComponent.extend({
 
 ---
 
+### trigger(eventName, [data])
+Trigger custom event and optionally provide data to handler callback.
+```js
+ViewComponent.extend({
+    initialize: function() {
+        this.trigger('componentInitialized');
+    }
+});
+```
+
+---
+
+### on(eventName, callback)
+Subscribe to custom view events
+```js
+ViewComponent.extend({
+    initialize: function() {
+        this.on('foo', function(data) {
+            console.log(data);
+        });
+        this.trigger('foo', {foo: 'bar'});
+    }
+});
+```
+
+---
+
+### off([eventName, [callback]])
+Removes listeners to custom view events.
+```js
+ViewComponent.extend({
+    initialize: function() {
+        this.off('foo');
+    }
+});
+```
+
+---
+
+### listenTo(publisher, eventName, callback)
+Listen to other object events.
+```js
+ViewComponent.extend({
+    initialize: function() {
+        initialize: function() {
+            var headerView = this.mapView('.mainHeader', HeaderView);
+            this.listenTo(headerView, 'customEvent' function(data) {
+                console.log(data);
+            });
+        }
+    }
+});
+```
+
+---
+
+### stopListening([publisher, [eventName, [callback]]])
+Removes listeners to custom publisher events.
+```js
+ViewComponent.extend({
+    initialize: function() {
+        initialize: function() {
+            var headerView = this.mapView('.mainHeader', HeaderView);
+            this.listenTo(headerView, 'customEvent' function(data) {
+                console.log(data);
+            });
+            this.stopListening(headerView, 'customEvent');
+        }
+    }
+});
+```
+
+---
+
 ### find(selector)
 Returns single html element found via selector inside current component element context.
+```js
+ViewComponent.extend({
+    initialize: function() {
+       var mainHeaderElement = this.find('.mainHeader');
+    }
+});
+```
 
 ---
 
 ### findAll(selector)
 Returns array of html elements found via selector inside current component element context.
+```js
+ViewComponent.extend({
+    initialize: function() {
+       var listElements = this.findAll('ul li');
+    }
+});
+```
+
+---
+
+### validateData(schema, obj)
+Validate object properties against schema (identical to props validation)
 
 ---
 
