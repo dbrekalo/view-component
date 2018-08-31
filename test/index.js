@@ -17,7 +17,7 @@ beforeEach(function() {
     `;
 });
 
-describe('SimpleView constructor', function() {
+describe('View component constructor', function() {
 
     it('creates instance and assigns client id property', function() {
 
@@ -94,7 +94,7 @@ describe('SimpleView constructor', function() {
 
 });
 
-describe('SimpleView events', function() {
+describe('View component events', function() {
 
     it('can be defined as function or pointer to view function', function() {
 
@@ -294,7 +294,34 @@ describe('SimpleView events', function() {
 
 });
 
-describe('SimpleView subviews', function() {
+describe('View component selector engine', function() {
+
+    it('single or multiple elements can be retrieved', function() {
+
+        var view = ViewComponent.extend({
+            initialize: function() {
+
+                this.form = this.find('form');
+                this.submitBtn = this.find('button', {context: this.form});
+                this.formList = this.find('.entryList', {context: this.form});
+                this.listItems = this.findAll('.entryList > li');
+                this.formListItems = this.findAll('li', {context: this.form});
+
+            }
+        }).create({el: '.guestbook'});
+
+        assert.strictEqual(view.form, document.querySelector('form'));
+        assert.strictEqual(view.submitBtn, document.querySelector('form button'));
+        assert.isNull(view.formList);
+        assert.isArray(view.listItems);
+        assert.deepEqual(view.listItems, [].slice.call(document.querySelectorAll('.entryList > li')));
+        assert.lengthOf(view.formListItems, 0);
+
+    });
+
+});
+
+describe('View component subviews', function() {
 
     it('can be added to parent registry', function() {
 
