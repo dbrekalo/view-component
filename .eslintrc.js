@@ -41,5 +41,8 @@ module.exports = {
         'space-before-function-paren': ['error', 'never'],
         'space-in-parens': ['error'],
         'wrap-iife': 'error'
+    },
+    'globals': {
+        'Promise': true
     }
 };

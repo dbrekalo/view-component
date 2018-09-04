@@ -1,6 +1,7 @@
 var assert = require('chai').assert;
 var $ = require('jquery');
 var ViewComponent = require('../');
+var dismissListener = require('../lib/mixins/dismissListener');
 
 beforeEach(function() {
     document.querySelector('body').innerHTML = `
@@ -32,16 +33,14 @@ describe('View component constructor', function() {
         var guestbookEl = document.querySelector('.guestbook');
 
         var view1 = new ViewComponent({el: '.guestbook'});
-        var view2 = new ViewComponent({el: $('.guestbook')});
-        var view3 = new ViewComponent({el: guestbookEl});
-        var view4 = new ViewComponent({el: document.querySelector('.notFound')});
-        var view5 = new ViewComponent();
+        var view2 = new ViewComponent({el: guestbookEl});
+        var view3 = new ViewComponent({el: document.querySelector('.notFound')});
+        var view4 = new ViewComponent();
 
-        assert.strictEqual(view1.$el, guestbookEl);
-        assert.strictEqual(view2.$el, guestbookEl);
-        assert.strictEqual(view3.$el, guestbookEl);
-        assert.isUndefined(view4.$el);
-        assert.isUndefined(view5.$el);
+        assert.strictEqual(view1.el, guestbookEl);
+        assert.strictEqual(view2.el, guestbookEl);
+        assert.isUndefined(view3.el);
+        assert.isUndefined(view4.el);
 
     });
 
@@ -184,85 +183,6 @@ describe('View component events', function() {
 
     });
 
-    it('executes dismiss listener when clicked outside view', function() {
-
-        var view = ViewComponent.extend({
-            open: function() {
-                this.isOpened = true;
-                return this.addDismissListener(this.close);
-            },
-            close: function() {
-                this.isOpened = false;
-                this.timesClosed = this.timesClosed || 0;
-                this.timesClosed++;
-                this.removeDismissListener(this.close);
-            }
-        }).create({el: '.guestbook'}).open();
-
-        assert.lengthOf(view.$eventRegistry, 2);
-
-        document.dispatchEvent(new Event('click'));
-        document.dispatchEvent(new Event('click'));
-        document.dispatchEvent(new Event('click'));
-
-        assert.lengthOf(view.$eventRegistry, 0);
-
-        assert.strictEqual(view.isOpened, false);
-        assert.strictEqual(view.timesClosed, 1);
-
-    });
-
-    it('executes dismiss listener with custom element container defined', function() {
-
-        var view = ViewComponent.extend({
-            open: function() {
-                this.isOpened = true;
-                this.addDismissListener(this.close, {container: this.find('form')});
-                return this;
-            },
-            close: function() {
-                this.isOpened = false;
-                this.removeDismissListener(this.close);
-            }
-        }).create({el: '.guestbook'}).open();
-
-        document.querySelector('.guestbook').click();
-
-        assert.strictEqual(view.isOpened, false);
-
-    });
-
-    it('executes dismiss listener on escape key', function() {
-
-        var view = ViewComponent.extend({
-            initialize: function() {
-                this.dismissCount = 0;
-                this.addDismissListener(() => {
-                    this.dismissCount++;
-                });
-            },
-            openMenu: function() {
-                this.isOpened = true;
-                return this.addDismissListener(this.closeMenu);
-            },
-            closeMenu: function() {
-                this.isOpened = false;
-                this.removeDismissListener(this.closeMenu);
-            }
-        }).create({el: '.guestbook'});
-
-        view.openMenu();
-
-        var event = new Event('keyup');
-        event.which = event.keyCode = 27;
-        document.dispatchEvent(event);
-        document.dispatchEvent(event);
-
-        assert.strictEqual(view.isOpened, false);
-        assert.strictEqual(view.dismissCount, 2);
-
-    });
-
     it('can be removed and cleaned up', function() {
 
         var view = ViewComponent.extend({
@@ -396,7 +316,7 @@ describe('View component subviews', function() {
         var parentView = ViewComponent.create({el: '.guestbook'});
 
         var childView1 = parentView.mapView('form', ChildView);
-        var childView2 = parentView.mapView($('form'), ChildView, {foo: 'bar2'});
+        var childView2 = parentView.mapView('form', ChildView, {foo: 'bar2'});
         var childView3 = parentView.mapView(document.querySelector('form'), ChildView, function(element) {
             assert.strictEqual(this, parentView);
             return {foo: element};
@@ -411,6 +331,25 @@ describe('View component subviews', function() {
 
     });
 
+    it('mapView returns promise when called with view provider function', function() {
+
+        var view = ViewComponent.extend({
+            initialize: function() {
+                this.formViewPromise = this.mapView('form', () => ViewComponent);
+                this.undefinedViewPromise = this.mapView('undefined', () => ViewComponent);
+            }
+        }).create({el: '.guestbook'});
+
+        assert.instanceOf(view.formViewPromise, Promise);
+        assert.instanceOf(view.undefinedViewPromise, Promise);
+
+        return Promise.all([view.formViewPromise, view.undefinedViewPromise]).then(values => {
+            assert.instanceOf(values[0], ViewComponent);
+            assert.isUndefined(values[1]);
+        });
+
+    });
+
     it('maps multiple views and returns view instances as array', function() {
 
         var ChildView = ViewComponent.extend({
@@ -419,7 +358,7 @@ describe('View component subviews', function() {
 
         var parentView = ViewComponent.create({el: '.guestbook'});
         var childViews1 = parentView.mapViews('.entryList li', ChildView);
-        var childViews2 = parentView.mapViews($('.entryList li'), ChildView, {foo: 'bar2'});
+        var childViews2 = parentView.mapViews('.entryList li', ChildView, {foo: 'bar2'});
         var childViews3 = parentView.mapViews(parentView.findAll('.entryList li'), ChildView, function(element) {
             assert.strictEqual(this, parentView);
             return {foo: element};
@@ -440,6 +379,119 @@ describe('View component subviews', function() {
         });
 
         assert.lengthOf(parentView.mapViews('.undefinedClass', ChildView), 0);
+
+    });
+
+    it('mapViews returns promise when called with view provider function', function() {
+
+        var view = ViewComponent.extend({
+            initialize: function() {
+                this.listViewsPromise = this.mapViews('.entryList li', () => ViewComponent);
+                this.undefinedViewPromise = this.mapViews('undefined', () => ViewComponent);
+            }
+        }).create({el: '.guestbook'});
+
+        assert.instanceOf(view.listViewsPromise, Promise);
+        assert.instanceOf(view.undefinedViewPromise, Promise);
+
+        return Promise.all([view.listViewsPromise, view.undefinedViewPromise]).then(values => {
+            assert.isArray(values[0]);
+            assert.lengthOf(values[0], 2);
+            assert.isArray(values[1]);
+        });
+
+    });
+
+});
+
+describe('Dismiss listener mixin', function() {
+
+    it('executes dismiss listener when clicked outside view', function() {
+
+        var view = ViewComponent.extend({
+            mixins: [dismissListener],
+            initialize: function() {
+                this.timesClosed = 0;
+            },
+            open: function() {
+                this.isOpened = true;
+                return this.addDismissListener(this.close);
+            },
+            close: function() {
+                this.isOpened = false;
+                this.timesClosed++;
+                this.removeDismissListener(this.close);
+            }
+        }).create({el: '.guestbook'}).open();
+
+        assert.lengthOf(view.$eventRegistry, 2);
+
+        document.dispatchEvent(new Event('click'));
+        document.dispatchEvent(new Event('click'));
+        document.dispatchEvent(new Event('click'));
+
+        assert.lengthOf(view.$eventRegistry, 0);
+
+        assert.strictEqual(view.isOpened, false);
+        assert.strictEqual(view.timesClosed, 1);
+
+        view.remove();
+
+        assert.deepEqual(view.$dismissListeners, []);
+
+
+    });
+
+    it('executes dismiss listener with custom element container defined', function() {
+
+        var view = ViewComponent.extend({
+            mixins: [dismissListener],
+            open: function() {
+                this.isOpened = true;
+                this.addDismissListener(this.close, {container: this.find('form')});
+                return this;
+            },
+            close: function() {
+                this.isOpened = false;
+                this.removeDismissListener(this.close);
+            }
+        }).create({el: '.guestbook'}).open();
+
+        document.querySelector('.guestbook').click();
+
+        assert.strictEqual(view.isOpened, false);
+
+    });
+
+    it('executes dismiss listener on escape key', function() {
+
+        var view = ViewComponent.extend({
+            mixins: [dismissListener],
+            initialize: function() {
+                this.dismissCount = 0;
+                this.addDismissListener(() => {
+                    this.dismissCount++;
+                });
+            },
+            openMenu: function() {
+                this.isOpened = true;
+                return this.addDismissListener(this.closeMenu);
+            },
+            closeMenu: function() {
+                this.isOpened = false;
+                this.removeDismissListener(this.closeMenu);
+            }
+        }).create({el: '.guestbook'});
+
+        view.openMenu();
+
+        var event = new Event('keyup');
+        event.which = event.keyCode = 27;
+        document.dispatchEvent(event);
+        document.dispatchEvent(event);
+
+        assert.strictEqual(view.isOpened, false);
+        assert.strictEqual(view.dismissCount, 2);
 
     });
 

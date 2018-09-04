@@ -22,6 +22,7 @@ Supports all browsers that are ES5-compliant (IE8 and below are not supported).
 * publish and subscribe api for component to component communication
 * hierarchy api for mapping child views to parent view html tree
 * extending api for sub-classing components with prototype and static properties
+* mixins for sharing reusable functionality across components
 
 ---
 
@@ -62,11 +63,9 @@ var Dropdown = ViewComponent.extend({
     },
     open: function() {
         this.el.classList.add(this.activeClass);
-        this.addDismissListener(this.close);
     },
     close: function() {
         this.el.classList.remove(this.activeClass);
-        this.removeDismissListener(this.close);
     }
 });
 
@@ -85,15 +84,15 @@ Component html:
 </ul>
 ```
 ```js
+// define List item component
+var ListItem = ViewComponent.extend({...});
+
 // define List component
 var List = ViewComponent.extend({
     initialize: function() {
-        var listViews = this.mapViews('li', ListItem);
+        this.mapViews('li', ListItem);
     }
 });
-
-// define List item component
-var ListItem = ViewComponent.extend({...});
 
 // create list instance
 new List({el: 'ul'});
@@ -141,6 +140,39 @@ var Cat = Animal.extend({
         throw new Error('Meeeow');
     }
 });
+
+```
+
+---
+
+### mixins: Array
+Used to inject reusable functionality into components.
+Mixins can contain hooks (initialize, beforeRemove and afterRemove), events, and prototype properties.
+Multiple mixins can be attached to component.
+```js
+var drodownMixin = {
+    initialize: function() {
+        console.log('Dropdown mixin inside')
+    },
+    events: 'click .dropdown': 'toggle',
+    toggle: function() {
+        this.el.classList.contains('opened')
+            ? this.close();
+            : this.open();
+    },
+    open: function() {
+        this.el.classList.add('opened');
+    },
+    close: function() {
+        this.el.classList.remove('opened');
+    }
+};
+
+var View = ViewComponent.extend({
+    mixins: [dropdownMixin],
+});
+
+new View(); // outputs "Dropdown mixin inside"
 
 ```
 
@@ -268,6 +300,19 @@ var MainHeader = ViewComponent.extend({});
 new Controller({el: 'body'});
 ```
 
+View components can be lazyloaded via view provider function which will be executed only if element is found via selector.
+mapView will return promise which resolves to view intance (if element is found) or undefined if not.
+Requires promise browser support or polyfill.
+
+```js
+ViewComponent.extend({
+    initialize: function() {
+        this.mapView('.mainHeader', () => import(./MainHeader))
+            .then(headerView => console.log(headerView));
+    }
+});
+```
+
 ----
 ### mapViews(selector, View, [props])
 Map View instances to all elements inside current view found via selector. Returns mapped instances array.
@@ -291,6 +336,19 @@ var ListItem = ViewComponent.extend();
 
 // create list instance
 new List({el: 'ul'});
+```
+
+View components can be lazyloaded via view provider function which will be executed only if elements are found via selector.
+mapViews will return promise which resolves to view intances array (if elements are found) or empty array if not.
+Requires promise browser support or polyfill.
+
+```js
+ViewComponent.extend({
+    initialize: function() {
+        this.mapViews('li', () => import(./ListItem));
+            .then(listViews => console.log(listViews));
+    }
+});
 ```
 
 ---
