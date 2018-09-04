@@ -6,7 +6,7 @@
 
 Library for building user interfaces with smart event system, strict component props and clear way of defining view hierarchy.
 Works great with server side rendered html.
-Weighs around 3.5 KB.
+Weighs around 3.7 KB.
 
 Designed to be versatile for small widgets and complete web applications.
 Best companion of server rendered applications where frameworks like Vue and React are difficult to adopt.
@@ -152,13 +152,14 @@ Multiple mixins can be attached to component.
 ```js
 var dropdownMixin = {
     initialize: function() {
-        console.log('Dropdown mixin inside')
+        console.log('Dropdown mixin inside');
     },
     events: 'click .dropdown': 'toggle',
     toggle: function() {
         this.el.classList.contains('opened')
-            ? this.close();
-            : this.open();
+            ? this.close()
+            : this.open()
+        ;
     },
     open: function() {
         this.el.classList.add('opened');
@@ -169,11 +170,10 @@ var dropdownMixin = {
 };
 
 var View = ViewComponent.extend({
-    mixins: [dropdownMixin],
+    mixins: [dropdownMixin]
 });
 
 new View(); // outputs "Dropdown mixin inside"
-
 ```
 
 ---
