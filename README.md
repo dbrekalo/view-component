@@ -150,7 +150,7 @@ Used to inject reusable functionality into components.
 Mixins can contain hooks (initialize, beforeRemove and afterRemove), events, and prototype properties.
 Multiple mixins can be attached to component.
 ```js
-var drodownMixin = {
+var dropdownMixin = {
     initialize: function() {
         console.log('Dropdown mixin inside')
     },
