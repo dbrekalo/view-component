@@ -261,7 +261,10 @@ ViewComponent.extend({
 ### addDismissListener(listener)
 When escape key is pressed or element outside view is clicked listener will be called.
 ```js
+var dismissListener = require('view-component/lib/mixins/dismissListener');
+
 ViewComponent.extend({
+    mixins: [dismissListener],
     open: function() {
         // after open logic
         this.addDismissListener(this.close);

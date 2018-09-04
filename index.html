@@ -152,7 +152,10 @@ ViewComponent.extend({
         return {'click .selector': 'handler'};
     }
 });
-</code></pre><hr class="attireSeparator mod1"><h3 id="adddismisslistener-listener-" class="attireTitleType3">addDismissListener(listener)</h3><p class="attireTextType2">When escape key is pressed or element outside view is clicked listener will be called.</p><pre class="attireCodeHighlight"><code class="lang-js">ViewComponent.extend({
+</code></pre><hr class="attireSeparator mod1"><h3 id="adddismisslistener-listener-" class="attireTitleType3">addDismissListener(listener)</h3><p class="attireTextType2">When escape key is pressed or element outside view is clicked listener will be called.</p><pre class="attireCodeHighlight"><code class="lang-js">var dismissListener = require('view-component/lib/mixins/dismissListener');
+
+ViewComponent.extend({
+    mixins: [dismissListener],
     open: function() {
         // after open logic
         this.addDismissListener(this.close);
