@@ -43,7 +43,7 @@
     "webpack": "^3.6.0"
   },
   "dependencies": {
-    "mitty": "^1.0.2",
+    "mitty": "^2.0.2",
     "type-factory": "^3.0.0",
     "validate-types": "^1.0.1"
   }

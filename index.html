@@ -223,6 +223,12 @@ new List({el: 'ul'});
         this.trigger('foo', {foo: 'bar'});
     }
 });
+</code></pre><hr class="attireSeparator mod1"><h3 id="once-eventname-callback-" class="attireTitleType3">once(eventName, callback)</h3><p class="attireTextType2">Subscribe to one time custom view events</p><pre class="attireCodeHighlight"><code class="lang-js">ViewComponent.extend({
+    initialize: function() {
+        this.once('foo', () =&gt; console.log(foo));
+        this.trigger('foo').trigger('foo');
+    }
+});
 </code></pre><hr class="attireSeparator mod1"><h3 id="off-eventname-callback-" class="attireTitleType3">off([eventName, [callback]])</h3><p class="attireTextType2">Removes listeners to custom view events.</p><pre class="attireCodeHighlight"><code class="lang-js">ViewComponent.extend({
     initialize: function() {
         this.off('foo');
@@ -233,6 +239,16 @@ new List({el: 'ul'});
         initialize: function() {
             var headerView = this.mapView('.mainHeader', HeaderView);
             this.listenTo(headerView, 'customEvent' function(data) {
+                console.log(data);
+            });
+        }
+    }
+});
+</code></pre><hr class="attireSeparator mod1"><h3 id="listentoonce-publisher-eventname-callback-" class="attireTitleType3">listenToOnce(publisher, eventName, callback)</h3><p class="attireTextType2">Listen to other object events one time.</p><pre class="attireCodeHighlight"><code class="lang-js">ViewComponent.extend({
+    initialize: function() {
+        initialize: function() {
+            var headerView = this.mapView('.mainHeader', HeaderView);
+            this.listenToOnce(headerView, 'customEvent' function(data) {
                 console.log(data);
             });
         }

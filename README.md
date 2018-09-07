@@ -395,6 +395,19 @@ ViewComponent.extend({
 
 ---
 
+### once(eventName, callback)
+Subscribe to one time custom view events
+```js
+ViewComponent.extend({
+    initialize: function() {
+        this.once('foo', () => console.log(foo));
+        this.trigger('foo').trigger('foo');
+    }
+});
+```
+
+---
+
 ### off([eventName, [callback]])
 Removes listeners to custom view events.
 ```js
@@ -415,6 +428,23 @@ ViewComponent.extend({
         initialize: function() {
             var headerView = this.mapView('.mainHeader', HeaderView);
             this.listenTo(headerView, 'customEvent' function(data) {
+                console.log(data);
+            });
+        }
+    }
+});
+```
+
+---
+
+### listenToOnce(publisher, eventName, callback)
+Listen to other object events one time.
+```js
+ViewComponent.extend({
+    initialize: function() {
+        initialize: function() {
+            var headerView = this.mapView('.mainHeader', HeaderView);
+            this.listenToOnce(headerView, 'customEvent' function(data) {
                 console.log(data);
             });
         }
